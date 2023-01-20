@@ -4,6 +4,9 @@
 )]
 
 use tokio::net::TcpStream;
+use utilities::AppError;
+
+mod utilities;
 
 fn main() {
     tauri::Builder::default()
@@ -15,42 +18,14 @@ fn main() {
 const IP: &str = "127.0.0.1:8731";
 
 #[tauri::command]
-async fn get_connection() -> Result<(), Error> {
-    let tcp_stream = match TcpStream::connect("127.0.0.1:8700").await {
+async fn get_connection() -> Result<bool, AppError> {
+    let tcp_stream = match TcpStream::connect(IP).await {
         Ok(stream) => stream,
         Err(e) => {
             println!("Failed to connect to desktop stream");
-            return Err(Error::from(e));
+            return Ok(false);
         }
     };
 
-    return Ok(());
-}
-
-use serde::{ser::Serializer, Serialize};
-use std::fmt::{Display, Formatter};
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    Tauri(#[from] tauri::Error),
-    Utf8(#[from] std::str::Utf8Error),
-    Generic(String),
-}
-
-impl Serialize for Error {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
-}
-
-impl Display for Error {
-    fn fmt(&self, formatter: &mut Formatter) -> std::fmt::Result {
-        write!(formatter, "{}", self)
-    }
+    return Ok(true);
 }
