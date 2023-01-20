@@ -23,7 +23,7 @@ async fn get_connection() -> Result<bool, AppError> {
         Ok(stream) => stream,
         Err(e) => {
             println!("Failed to connect to desktop stream");
-            return Ok(false);
+            return Err(e);
         }
     };
 
